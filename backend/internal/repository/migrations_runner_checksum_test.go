@@ -182,11 +182,12 @@ func TestIsMigrationChecksumCompatible(t *testing.T) {
 	})
 
 	// 从官方镜像切到 fork：db 记录官方版 checksum，文件是补了 kiro/adobe 的 fork 版。
-	t.Run("157/237/238官方版与fork版兼容", func(t *testing.T) {
+	t.Run("157/237/238/241官方版与fork版兼容", func(t *testing.T) {
 		for _, tc := range []struct{ name, official, fork string }{
 			{"157_user_platform_quotas_add_grok.sql", "5cace8fa32c6174a72721cd9b01f28f4545de1fd7bcd9ca196a4225056ec4fb8", "a918734da39c2e5a82e4a5e9511bac1f4cf7e310ceadd647df52692320633c1b"},
 			{"237_add_minimax_platform.sql", "f4c73d2dbce114ca7ade1aac51998c3465490f4f3c9b3e868e53590f3fa8601b", "c754b29e15c10ef2a72887c4e2dd04a73a37c6c06218d1b2725836884450c03a"},
 			{"238_opencode_go_platform.sql", "6f987e251519bd3759e60da44620a5d777494cceb333b6ce394aa0ea536ef5a2", "d310f134e119bd0b01c36e048841d04e1adc04a117c5c516ccdbbc8800742414"},
+			{"241_add_typesafe_platform.sql", "b6559525bf8d0b5d7c617e7415944f0d1fae8c408e9131ace84139795f66dcd2", "daf4cc3845d733764049895e2fe6663fd4fb3ad5bbc047a1852d7b10d240a9ab"},
 		} {
 			require.True(t, isMigrationChecksumCompatible(tc.name, tc.official, tc.fork), tc.name)
 			require.False(t, isMigrationChecksumCompatible(tc.name,
