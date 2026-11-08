@@ -651,6 +651,13 @@ export function getModelsByPlatform(platform: string): string[] {
       'hy4-preview', 'hy3', 'omen-alpha'
     ]
     case 'typesafe': return ['jev-latest']
+    case 'volcengine': return [
+      'ark-code-latest',
+      'doubao-seed-evolving', 'doubao-seed-2.1-pro', 'doubao-seed-2.1-lite', 'doubao-seed-2.0-mini',
+      'glm-5.3', 'glm-5.3-flash',
+      'deepseek-v4.1-flash', 'deepseek-v4.1-flash-economy', 'deepseek-v4-flash', 'deepseek-v4-pro',
+      'kimi-k3', 'kimi-k3.1-pro', 'kimi-k2.8-preview'
+    ]
     case 'doubao': return doubaoModels
     case 'minimax': return minimaxModels
     case 'baidu': return baiduModels

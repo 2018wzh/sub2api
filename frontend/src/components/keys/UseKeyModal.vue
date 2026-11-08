@@ -1338,6 +1338,7 @@ function generateRoutedCodexFiles(
     zhipu: 'Zhipu',
     deepseek: 'DeepSeek',
     minimax: 'MiniMax',
+    volcengine: 'Volcengine Ark',
     opencode_go: 'OpenCode',
     typesafe: 'TypeSafe / Jev',
     command_code: 'Command Code',

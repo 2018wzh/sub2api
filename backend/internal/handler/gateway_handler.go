@@ -1555,6 +1555,8 @@ func defaultCodexModelIDsForPlatform(platform string) []string {
 		return []string{"deepseek-v4-pro", "deepseek-v4-flash", "deepseek-flash"}
 	case service.PlatformMiniMax:
 		return []string{"MiniMax-M3", "MiniMax-M2.7", "MiniMax-M2.5"}
+	case service.PlatformVolcengine:
+		return service.DefaultVolcengineModelIDs()
 	default:
 		return defaultModelIDsForPlatform(platform)
 	}
@@ -1595,6 +1597,8 @@ func defaultModelIDsForPlatform(platform string) []string {
 		return service.DefaultOpenCodeGoModelIDs()
 	case service.PlatformTypeSafe:
 		return []string{"jev-latest"}
+	case service.PlatformVolcengine:
+		return service.DefaultVolcengineModelIDs()
 	case service.PlatformComposite:
 		ids := make([]string, 0)
 		seen := make(map[string]struct{})

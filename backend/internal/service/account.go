@@ -1594,15 +1594,20 @@ func (a *Account) GetOpenAIBaseURL() string {
 	return "https://api.openai.com"
 }
 
-// GetAccountMode 返回国产供应商账号的接入模式（payg / coding）；非国产供应商或未设置时
-// 返回空串。存储于 credentials["account_mode"]。
+// GetAccountMode 返回国产供应商账号的接入模式（payg / coding / agent）；非国产供应商
+// 或未设置时返回空串。存储于 credentials["account_mode"]。
+// 火山方舟订阅账号未显式设置时按默认的 Coding Plan 处理，与 provider profile 一致。
 func (a *Account) GetAccountMode() string {
 	if a == nil {
 		return ""
 	}
 	mode := strings.TrimSpace(a.GetCredential("account_mode"))
-	if mode == AccountModePayG || mode == AccountModeCoding {
+	switch mode {
+	case AccountModePayG, AccountModeCoding, AccountModeAgent:
 		return mode
+	}
+	if mode == "" && a.Platform == PlatformVolcengine {
+		return AccountModeCoding
 	}
 	return ""
 }
@@ -1610,6 +1615,18 @@ func (a *Account) GetAccountMode() string {
 // IsCodingPlan 报告账号是否为 Coding Plan 模式（用于滚动用量窗口冷却）。
 func (a *Account) IsCodingPlan() bool {
 	return a.GetAccountMode() == AccountModeCoding
+}
+
+// IsAgentPlan 报告账号是否为火山方舟 Agent Plan 订阅模式。
+func (a *Account) IsAgentPlan() bool {
+	return a.GetAccountMode() == AccountModeAgent
+}
+
+// HasRollingQuotaPlan 报告账号是否按订阅用量窗口计费（Coding Plan / Agent Plan）。
+// 这类账号的额度由周期探测写入 account.Extra，调度阈值与响应式 429 冷却读取快照。
+func (a *Account) HasRollingQuotaPlan() bool {
+	mode := a.GetAccountMode()
+	return mode == AccountModeCoding || mode == AccountModeAgent
 }
 
 // GetAPIProtocol 返回国产供应商账号的上游 API 协议。存储于
@@ -1735,9 +1752,26 @@ func (a *Account) GetCNAPIKey() string {
 	return a.GetCredential("api_key")
 }
 
-// GetCodingPlanProvider 根据 base_url 识别 Coding Plan 供应商（kimi / zhipu / minimax；
-// OpenCode Go 订阅与官方主机上的 Command Code、Cline 账号按平台识别），
-// 用于路由到对应的额度查询端点。非 coding 模式或无法识别时返回空串。
+// GetVolcengineAccessKeyID 返回火山方舟账号的 AccessKey ID（控制面额度查询用）。
+// 推理 Key（api_key）与控制面 AK/SK 是两套凭据，互不通用。
+func (a *Account) GetVolcengineAccessKeyID() string {
+	if a == nil || a.Platform != PlatformVolcengine {
+		return ""
+	}
+	return strings.TrimSpace(a.GetCredential("access_key_id"))
+}
+
+// GetVolcengineSecretAccessKey 返回火山方舟账号的 Secret Access Key。
+func (a *Account) GetVolcengineSecretAccessKey() string {
+	if a == nil || a.Platform != PlatformVolcengine {
+		return ""
+	}
+	return strings.TrimSpace(a.GetCredential("secret_access_key"))
+}
+
+// GetCodingPlanProvider 根据 base_url 识别订阅套餐供应商（kimi / zhipu / minimax /
+// volcengine；OpenCode Go 订阅与官方主机上的 Command Code、Cline 账号按平台识别），
+// 用于路由到对应的额度查询端点。非订阅模式或无法识别时返回空串。
 // 只认官方域名：自定义中转不得把第三方 Key 发往厂商官方额度端点。
 func (a *Account) GetCodingPlanProvider() string {
 	if a == nil {
@@ -1758,6 +1792,15 @@ func (a *Account) GetCodingPlanProvider() string {
 		}
 		return ""
 	}
+	if a.Platform == PlatformVolcengine {
+		if !a.HasRollingQuotaPlan() {
+			return ""
+		}
+		if isVolcenginePlanBaseURL(a.GetOpenAIBaseURL()) {
+			return PlatformVolcengine
+		}
+		return ""
+	}
 	if a.GetAccountMode() != AccountModeCoding {
 		return ""
 	}
@@ -1774,6 +1817,26 @@ func (a *Account) GetCodingPlanProvider() string {
 	default:
 		return ""
 	}
+}
+
+// isVolcenginePlanBaseURL 报告 base_url 是否为火山方舟订阅套餐的官方推理入口：
+// Coding Plan 为 /api/coding[/v3]，Agent Plan 为 /api/plan[/v3]。
+// 仅接受 ark.<region>.volces.com，避免把 AK/SK 与额度查询绑定到第三方中转。
+func isVolcenginePlanBaseURL(baseURL string) bool {
+	parsed, err := url.Parse(baseURL)
+	if err != nil || parsed.Scheme != "https" || parsed.User != nil || parsed.Opaque != "" ||
+		parsed.RawQuery != "" || parsed.ForceQuery || strings.Contains(baseURL, "#") {
+		return false
+	}
+	host := strings.ToLower(parsed.Hostname())
+	labels := strings.Split(host, ".")
+	if len(labels) != 4 || labels[0] != "ark" || labels[1] == "" ||
+		labels[2] != "volces" || labels[3] != "com" {
+		return false
+	}
+	path := parsed.EscapedPath()
+	return path == "/api/coding" || strings.HasPrefix(path, "/api/coding/") ||
+		path == "/api/plan" || strings.HasPrefix(path, "/api/plan/")
 }
 
 func isKimiCodingBaseURL(baseURL string) bool {

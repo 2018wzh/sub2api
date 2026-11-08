@@ -117,6 +117,8 @@ func DetectModelPlatform(model string) (string, bool) {
 			return PlatformMiniMax, true
 		case "typesafe", "jev":
 			return PlatformTypeSafe, true
+		case "volcengine", "ark", "doubao":
+			return PlatformVolcengine, true
 		}
 		if rest != "" {
 			normalized = strings.TrimPrefix(rest, "models/")
@@ -160,6 +162,8 @@ func DetectModelPlatform(model string) (string, bool) {
 		return PlatformMiniMax, true
 	case normalized == "jev-latest" || strings.HasPrefix(normalized, "jev-"):
 		return PlatformTypeSafe, true
+	case strings.HasPrefix(normalized, "doubao-"), normalized == "ark-code-latest":
+		return PlatformVolcengine, true
 	default:
 		return "", false
 	}

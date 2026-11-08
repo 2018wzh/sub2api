@@ -273,7 +273,7 @@ describe('CreateAccountModal OpenAI long-context billing', () => {
 
   afterEach(() => vi.useRealTimers())
 
-  it('renders all 16 platforms in one grid with Kiro, Leonardo and Fish last', () => {
+  it('renders all 17 platforms in one grid with Kiro, Leonardo and Fish last', () => {
     const wrapper = mountModal()
     const platformSelector = wrapper.get('[data-tour="account-form-platform"]')
 
@@ -291,6 +291,7 @@ describe('CreateAccountModal OpenAI long-context billing', () => {
       'Zhipu GLM',
       'DeepSeek',
       'MiniMax',
+      'Volcengine Ark',
       'OpenCode',
       'Command Code',
       'Cline',

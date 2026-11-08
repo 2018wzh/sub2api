@@ -106,7 +106,7 @@ describe('UserPlatformQuotaModal', () => {
     const rows = w.findAll('tbody tr')
     expect(rows.map(row => row.find('td').text())).toEqual([
       'anthropic', 'openai', 'gemini', 'antigravity', 'kiro', 'grok',
-      'kimi', 'zhipu', 'deepseek', 'minimax', 'opencode_go', 'typesafe', 'command_code', 'cline', 'leonardo', 'fish',
+      'kimi', 'zhipu', 'deepseek', 'minimax', 'volcengine', 'opencode_go', 'typesafe', 'command_code', 'cline', 'leonardo', 'fish',
     ])
     for (const row of rows) {
       const inputs = row.findAll('input[type=number]')
@@ -116,11 +116,11 @@ describe('UserPlatformQuotaModal', () => {
     w.unmount()
   })
 
-  it.each(['kimi', 'zhipu', 'deepseek', 'minimax', 'opencode_go', 'typesafe', 'command_code', 'cline'] as const)(
+  it.each(['kimi', 'zhipu', 'deepseek', 'minimax', 'volcengine', 'opencode_go', 'typesafe', 'command_code', 'cline'] as const)(
     'saves edits to %s without erasing existing platform limits', async (platform) => {
       const existing: PlatformQuotaUpdateItem[] = [
         { platform: 'openai', daily_limit_usd: 10, weekly_limit_usd: 20, monthly_limit_usd: 100 },
-        ...(['kimi', 'zhipu', 'deepseek', 'minimax', 'opencode_go', 'typesafe', 'command_code', 'cline'] as const).map(p => ({
+        ...(['kimi', 'zhipu', 'deepseek', 'minimax', 'volcengine', 'opencode_go', 'typesafe', 'command_code', 'cline'] as const).map(p => ({
           platform: p, daily_limit_usd: 0, weekly_limit_usd: null, monthly_limit_usd: 50,
         })),
       ]
@@ -137,7 +137,7 @@ describe('UserPlatformQuotaModal', () => {
         : item)
       expect(apiMocks.updatePlatformQuotas).toHaveBeenCalledTimes(1)
       expect(apiMocks.updatePlatformQuotas).toHaveBeenCalledWith(99, expect.arrayContaining(expected))
-      expect(apiMocks.updatePlatformQuotas.mock.calls[0][1]).toHaveLength(16)
+      expect(apiMocks.updatePlatformQuotas.mock.calls[0][1]).toHaveLength(17)
       expect(w.emitted('success')).toHaveLength(1)
       w.unmount()
     },
@@ -152,13 +152,13 @@ describe('UserPlatformQuotaModal', () => {
     })
     const w = await mountAndOpen()
     const inputs = w.findAll('input[type=number]')
-    // 16 platforms × 3 windows = 48 inputs
-    expect(inputs.length).toBe(48)
+    // 17 platforms × 3 windows = 51 inputs
+    expect(inputs.length).toBe(51)
     // 第一个 input 是 anthropic.daily = 10
     expect((inputs[0].element as HTMLInputElement).value).toBe('10')
   })
 
-  it('保存提交完整 16 platform payload', async () => {
+  it('保存提交完整 17 platform payload', async () => {
     apiMocks.getPlatformQuotas.mockResolvedValueOnce({
       platform_quotas: [
         { platform: 'openai', daily_limit_usd: null, weekly_limit_usd: 20, monthly_limit_usd: null,
@@ -175,7 +175,7 @@ describe('UserPlatformQuotaModal', () => {
     expect(apiMocks.updatePlatformQuotas).toHaveBeenCalledTimes(1)
     const [uid, payload] = apiMocks.updatePlatformQuotas.mock.calls[0]
     expect(uid).toBe(99)
-    expect(payload).toHaveLength(16) // all supported platforms always submitted
+    expect(payload).toHaveLength(17) // all supported platforms always submitted
     const openai = payload.find((p: any) => p.platform === 'openai')
     expect(openai.weekly_limit_usd).toBe(20)
   })
@@ -249,7 +249,7 @@ describe('UserPlatformQuotaModal', () => {
   it('未配置限额的平台重置按钮禁用并提示不可用', async () => {
     const w = await mountAndOpen()
     const resetBtns = w.findAll('button').filter((b) => b.text() === '↻')
-    expect(resetBtns.length).toBe(48) // 16 platforms × 3 windows
+    expect(resetBtns.length).toBe(51) // 17 platforms × 3 windows
     for (const b of resetBtns) {
       expect((b.element as HTMLButtonElement).disabled).toBe(true)
       expect(b.attributes('title')).toBe('admin.users.platformQuota.reset.unavailable')

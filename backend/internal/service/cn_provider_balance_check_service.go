@@ -122,9 +122,9 @@ func (s *CNProviderBalanceCheckService) runOnce() {
 			if IsOllamaCloudUsageAccount(account) {
 				continue
 			}
-			// coding 账号：探测滚动窗口并落快照（不要求 Schedulable——已被
-			// 阈值停调的账号也需要新鲜快照决定是否续停）。
-			if account.IsCodingPlan() {
+			// 订阅套餐账号（Coding Plan / Agent Plan）：探测滚动窗口并落快照
+			// （不要求 Schedulable——已被阈值停调的账号也需要新鲜快照决定是否续停）。
+			if account.HasRollingQuotaPlan() {
 				quotaTargets = append(quotaTargets, quotaTarget{id: account.ID, platform: account.Platform})
 				continue
 			}
@@ -143,9 +143,9 @@ func (s *CNProviderBalanceCheckService) runOnce() {
 		}
 		collect(platform, accounts)
 	}
-	// 智谱 / MiniMax 无余额端点，仅进额度探测。
+	// 智谱 / MiniMax / 火山方舟无余额端点，仅进额度探测。
 	if s.quotaService != nil {
-		for _, platform := range []string{PlatformZhipu, PlatformMiniMax} {
+		for _, platform := range []string{PlatformZhipu, PlatformMiniMax, PlatformVolcengine} {
 			accounts, err := s.accountRepo.ListByPlatform(context.Background(), platform)
 			if err != nil {
 				log.Printf("[CNBalance] list %s accounts failed: %v", platform, err)

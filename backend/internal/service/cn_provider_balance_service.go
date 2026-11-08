@@ -289,9 +289,9 @@ func validatePayGAccount(account *Account) error {
 	if !account.IsCNProvider() {
 		return infraerrors.New(http.StatusBadRequest, "CN_BALANCE_INVALID_PLATFORM", "account is not a CN provider account")
 	}
-	// coding 账号走额度探测，余额端点不适用。
-	if account.IsCodingPlan() {
-		return infraerrors.New(http.StatusBadRequest, "CN_BALANCE_CODING_PLAN", "coding plan account has no balance endpoint; use quota probe")
+	// 订阅套餐账号走额度探测，余额端点不适用。
+	if account.HasRollingQuotaPlan() {
+		return infraerrors.New(http.StatusBadRequest, "CN_BALANCE_CODING_PLAN", "subscription plan account has no balance endpoint; use quota probe")
 	}
 	return nil
 }

@@ -29,7 +29,10 @@ const (
 	PlatformZhipu    = "zhipu"    // 智谱 GLM (bigmodel)
 	PlatformDeepseek = "deepseek" // DeepSeek
 	PlatformMiniMax  = "minimax"  // MiniMax (M 系列)
-	PlatformTypeSafe = "typesafe" // TypeSafe AI System One (Jev)
+	// PlatformVolcengine 是火山方舟订阅套餐（Coding Plan / Agent Plan），经 OpenAI
+	// 网关转发，支持 Chat Completions / Responses / Anthropic 三种原生协议。
+	PlatformVolcengine = "volcengine"
+	PlatformTypeSafe   = "typesafe" // TypeSafe AI System One (Jev)
 	// PlatformOpenCodeGo 是 OpenCode 平台（账号类型 Zen 按量 / Go 订阅）。
 	// 值保持 opencode_go 以兼容已落库的账号、分组、配额与 Composite 路由。
 	PlatformOpenCodeGo = "opencode_go"
@@ -53,6 +56,7 @@ const (
 const (
 	AccountModePayG   = "payg"   // 按量付费：消耗余额，做余额检测冷却
 	AccountModeCoding = "coding" // Coding Plan：滚动用量窗口冷却（5h / weekly）
+	AccountModeAgent  = "agent"  // Agent Plan：火山方舟 Agent Plan（5h / weekly / monthly AFP 窗口）
 	AccountModeZen    = "zen"    // OpenCode Zen：按量付费，https://opencode.ai/zen/v1
 	AccountModeGo     = "go"     // OpenCode Go：订阅额度窗口，https://opencode.ai/zen/go/v1
 )

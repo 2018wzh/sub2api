@@ -383,6 +383,40 @@
           </div>
           <p class="input-hint mt-2">{{ t('admin.accounts.cnProviders.zhipuTeam.hint') }}</p>
         </div>
+        <!-- 火山方舟控制面 AK/SK（额度查询与调度窗口探测） -->
+        <div v-if="account.platform === 'volcengine'" data-testid="edit-volcengine-aksk">
+          <div class="flex items-center">
+            <label class="input-label">{{ t('admin.accounts.cnProviders.volcengine.title') }}</label>
+            <HelpTooltip trigger="click" width-class="w-80">
+              <p class="mb-1 font-medium">{{ t('admin.accounts.cnProviders.volcengine.help.title') }}</p>
+              <ol class="list-decimal space-y-1 pl-4">
+                <li>{{ t('admin.accounts.cnProviders.volcengine.help.step1') }}</li>
+                <li>{{ t('admin.accounts.cnProviders.volcengine.help.step2') }}</li>
+                <li>{{ t('admin.accounts.cnProviders.volcengine.help.step3') }}</li>
+              </ol>
+            </HelpTooltip>
+          </div>
+          <div class="mt-2 grid gap-4 sm:grid-cols-2">
+            <div>
+              <label class="input-label">{{ t('admin.accounts.cnProviders.volcengine.accessKeyId') }}</label>
+              <input v-model="editVolcengineAccessKeyId" type="text" class="input font-mono" autocomplete="off" :placeholder="t('admin.accounts.cnProviders.volcengine.accessKeyIdPlaceholder')" />
+            </div>
+            <div>
+              <label class="input-label">{{ t('admin.accounts.cnProviders.volcengine.secretAccessKey') }}</label>
+              <input
+                v-model="editVolcengineSecretAccessKey"
+                type="password"
+                class="input font-mono"
+                autocomplete="new-password"
+                data-1p-ignore
+                :placeholder="account.credentials_status?.has_secret_access_key
+                  ? t('admin.accounts.cnProviders.volcengine.secretConfigured')
+                  : t('admin.accounts.cnProviders.volcengine.secretAccessKeyPlaceholder')"
+              />
+            </div>
+          </div>
+          <p class="input-hint mt-2">{{ t('admin.accounts.cnProviders.volcengine.hint') }}</p>
+        </div>
         <div>
           <label class="input-label">{{ t('admin.accounts.apiKey') }}</label>
           <input
@@ -4069,14 +4103,20 @@ const editOpenCodeGoProtocolRules = ref<OpenCodeGoProtocolRule[]>(cloneOpenCodeG
 // 多协议供应商（国产厂商与走通用表单的供应商）的接入模式；OpenCode 用 editOpenCodeAccountMode。
 const editAccountMode = ref<string>('payg')
 const editOpenCodeAccountMode = ref<OpenCodeAccountMode>('go')
-// 国产厂商的接入模式只有 payg / coding。
-const cnPresetMode = computed<CnAccountMode>(() => (editAccountMode.value === 'coding' ? 'coding' : 'payg'))
+// 国产厂商的接入模式：payg / coding，火山方舟另有 agent。
+const cnPresetMode = computed<CnAccountMode>(() => {
+  if (editAccountMode.value === 'agent') return 'agent'
+  return editAccountMode.value === 'coding' ? 'coding' : 'payg'
+})
 function currentOpenCodeOrCNMode(): string {
   return props.account?.platform === 'opencode_go' ? editOpenCodeAccountMode.value : editAccountMode.value
 }
 // 智谱团队版 Coding Plan：组织/项目 ID，写入 credentials 供额度探测切换团队端点
 const editZhipuOrganization = ref('')
 const editZhipuProject = ref('')
+// 火山方舟控制面 AK/SK（额度查询）；Secret 脱敏后不回显，留空表示保留原值
+const editVolcengineAccessKeyId = ref('')
+const editVolcengineSecretAccessKey = ref('')
 const editAdaptiveBaseUrls = ref<Record<CnNativeApiProtocol, string>>({
   chat_completions: '',
   anthropic: '',
@@ -4087,8 +4127,14 @@ const editAdaptiveBaseUrls = ref<Record<CnNativeApiProtocol, string>>({
 // 存储版 base_url（可能是用户自定义/中转地址）覆盖为官方预设并在下次保存时持久化。
 // nextTick 后解除，此后用户主动切换模式/协议仍正常联动重置。
 const syncingForm = ref(false)
-const cnAccountModeOptions = computed<Array<{ value: CnAccountMode; labelKey: 'payg' | 'coding' }>>(
+const cnAccountModeOptions = computed<Array<{ value: CnAccountMode; labelKey: 'payg' | 'coding' | 'agent' }>>(
   () => {
+    if (props.account?.platform === 'volcengine') {
+      return [
+        { value: 'coding', labelKey: 'coding' },
+        { value: 'agent', labelKey: 'agent' }
+      ]
+    }
     // DeepSeek 无 coding 套餐（与创建弹窗一致），仅保留按量付费。
     if (props.account?.platform === 'deepseek') {
       return [{ value: 'payg', labelKey: 'payg' }]
@@ -5322,7 +5368,7 @@ const syncFormFromAccount = (newAccount: Account | null) => {
       if (newAccount.platform === 'opencode_go') {
         editOpenCodeAccountMode.value = resolveOpenCodeAccountMode(credentials.account_mode)
       } else if (isCNProviderPlatform(newAccount.platform)) {
-        editAccountMode.value = credentials.account_mode === 'coding' ? 'coding' : 'payg'
+        editAccountMode.value = resolveProviderAccountMode(newAccount.platform, credentials.account_mode)
       } else {
         editAccountMode.value = resolveProviderAccountMode(newAccount.platform, credentials.account_mode)
       }
@@ -5372,6 +5418,11 @@ const syncFormFromAccount = (newAccount: Account | null) => {
       if (newAccount.platform === 'zhipu') {
         editZhipuOrganization.value = typeof credentials.zhipu_organization === 'string' ? credentials.zhipu_organization : ''
         editZhipuProject.value = typeof credentials.zhipu_project === 'string' ? credentials.zhipu_project : ''
+      }
+      // 火山方舟：AK 可回显，Secret 脱敏后留空表示保留原值
+      if (newAccount.platform === 'volcengine') {
+        editVolcengineAccessKeyId.value = typeof credentials.access_key_id === 'string' ? credentials.access_key_id : ''
+        editVolcengineSecretAccessKey.value = ''
       }
       if (providerRoutesByModel(newAccount.platform)) {
         editOpenCodeGoProtocolRules.value =
@@ -6267,6 +6318,15 @@ const handleSubmit = async () => {
             delete newCredentials.zhipu_organization
             delete newCredentials.zhipu_project
           }
+        }
+        // 火山方舟：AK 非空则写、清空则删；Secret 留空时由后端保留原值
+        if (props.account.platform === 'volcengine') {
+          const accessKeyId = editVolcengineAccessKeyId.value.trim()
+          if (accessKeyId) newCredentials.access_key_id = accessKeyId
+          else delete newCredentials.access_key_id
+          const secretAccessKey = editVolcengineSecretAccessKey.value.trim()
+          if (secretAccessKey) newCredentials.secret_access_key = secretAccessKey
+          else delete newCredentials.secret_access_key
         }
       }
 

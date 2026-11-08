@@ -141,8 +141,11 @@ func (s *CNProviderQuotaService) queryUsageForAccount(ctx context.Context, accou
 	if provider == PlatformCline {
 		return s.queryClineUsage(ctx, account)
 	}
+	if provider == PlatformVolcengine {
+		return s.queryVolcengineUsage(ctx, account)
+	}
 	if provider != PlatformKimi && provider != PlatformZhipu && provider != PlatformMiniMax && provider != PlatformOpenCodeGo {
-		return nil, infraerrors.New(http.StatusBadRequest, "CN_QUOTA_NOT_CODING_PLAN", "account is not a kimi/zhipu/minimax coding plan or opencode go account")
+		return nil, infraerrors.New(http.StatusBadRequest, "CN_QUOTA_NOT_CODING_PLAN", "account is not a kimi/zhipu/minimax/volcengine subscription or opencode go account")
 	}
 
 	apiKey := strings.TrimSpace(account.GetCNAPIKey())
@@ -317,6 +320,12 @@ func validateCodingPlanAccount(account *Account) error {
 	}
 	if !account.IsCNProvider() {
 		return infraerrors.New(http.StatusBadRequest, "CN_QUOTA_INVALID_PLATFORM", "account is not a CN provider account")
+	}
+	if account.Platform == PlatformVolcengine {
+		if !account.HasRollingQuotaPlan() {
+			return infraerrors.New(http.StatusBadRequest, "CN_QUOTA_NOT_CODING_PLAN", "volcengine account is not on Coding Plan / Agent Plan")
+		}
+		return nil
 	}
 	if !account.IsCodingPlan() {
 		return infraerrors.New(http.StatusBadRequest, "CN_QUOTA_NOT_CODING_PLAN", "account is not a coding plan account")

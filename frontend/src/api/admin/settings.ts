@@ -47,6 +47,7 @@ export type SchedulingThresholdPlatformType =
   | "kimi"
   | "zhipu"
   | "minimax"
+  | "volcengine"
   | "opencode_go"
   | "command_code"
 
@@ -59,8 +60,8 @@ export const SCHEDULING_THRESHOLD_PLATFORMS: SchedulingThresholdPlatformType[] =
   "anthropic",
   "grok",
   "kimi",
-  "zhipu",
   "minimax",
+  "volcengine",
   "opencode_go",
   "command_code",
 ]

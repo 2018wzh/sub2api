@@ -48,6 +48,7 @@ const (
 	PlatformZhipu       = domain.PlatformZhipu
 	PlatformDeepseek    = domain.PlatformDeepseek
 	PlatformMiniMax     = domain.PlatformMiniMax
+	PlatformVolcengine  = domain.PlatformVolcengine
 	PlatformOpenCodeGo  = domain.PlatformOpenCodeGo
 	PlatformTypeSafe    = domain.PlatformTypeSafe
 	PlatformCommandCode = domain.PlatformCommandCode
@@ -64,6 +65,7 @@ const (
 const (
 	AccountModePayG   = domain.AccountModePayG
 	AccountModeCoding = domain.AccountModeCoding
+	AccountModeAgent  = domain.AccountModeAgent
 	AccountModeZen    = domain.AccountModeZen
 	AccountModeGo     = domain.AccountModeGo
 )
@@ -94,6 +96,10 @@ const (
 	DefaultCommandCodeBaseURL = "https://api.commandcode.ai/provider/v1"
 	// Cline API：只提供 Chat Completions（{base}/chat/completions）与模型列表。
 	DefaultClineBaseURL = "https://api.cline.bot/api/v1"
+	// 火山方舟订阅套餐：Coding Plan 与 Agent Plan 使用各自的专属推理域名。
+	// 请勿使用 /api/v3（按量付费），否则不会消耗订阅额度。
+	DefaultVolcengineCodingBaseURL = "https://ark.cn-beijing.volces.com/api/coding/v3"
+	DefaultVolcengineAgentBaseURL  = "https://ark.cn-beijing.volces.com/api/plan/v3"
 )
 
 // 国产供应商 Anthropic 协议端点的默认 base_url（上游路径为 {base}/v1/messages）。
@@ -109,7 +115,31 @@ const (
 	DefaultOpenCodeZenAnthropicBaseURL = "https://opencode.ai/zen"
 	// Command Code 的 Anthropic 端点为 /provider/v1/messages（Claude 系模型只在此端点提供）。
 	DefaultCommandCodeAnthropicBaseURL = "https://api.commandcode.ai/provider"
+	// 火山方舟 Anthropic 基址不含 /v1：nativeAnthropicTargetURL 会再拼 /v1/messages。
+	DefaultVolcengineCodingAnthropicBaseURL = "https://ark.cn-beijing.volces.com/api/coding"
+	DefaultVolcengineAgentAnthropicBaseURL  = "https://ark.cn-beijing.volces.com/api/plan"
 )
+
+// DefaultVolcengineModelIDs 是火山方舟 Coding Plan / Agent Plan 的常见文本模型，
+// 用作 /v1/models 的兜底列表（账号配置了 model_mapping 时以映射为准）。
+func DefaultVolcengineModelIDs() []string {
+	return []string{
+		"ark-code-latest",
+		"doubao-seed-evolving",
+		"doubao-seed-2.1-pro",
+		"doubao-seed-2.1-lite",
+		"doubao-seed-2.0-mini",
+		"glm-5.3",
+		"glm-5.3-flash",
+		"deepseek-v4.1-flash",
+		"deepseek-v4.1-flash-economy",
+		"deepseek-v4-flash",
+		"deepseek-v4-pro",
+		"kimi-k2.8-preview",
+		"kimi-k3",
+		"kimi-k3.1-pro",
+	}
+}
 
 // IsCNProvider 报告 platform 是否为国产 OpenAI 兼容供应商（kimi/zhipu/deepseek/minimax），
 // 以平台清单（domain/platforms.go）为准。
@@ -136,7 +166,7 @@ var AllowedQuotaPlatforms = domain.ConcretePlatformIDs()
 // AllowedSchedulingThresholdPlatforms 是允许设置账号自动停调阈值的平台列表。
 // openai/anthropic/grok 有原生用量窗口；kimi/zhipu/minimax 的 Coding Plan 同样暴露
 // 5h/weekly 滚动窗口，纳入阈值评估。deepseek 为余额型，走余额检测而非阈值。
-// OpenCode Go 与 Command Code 的订阅套餐另有月度窗口。
+// OpenCode Go、Command Code 与火山方舟订阅套餐另有月度窗口。
 var AllowedSchedulingThresholdPlatforms = []string{
 	PlatformOpenAI,
 	PlatformAnthropic,
@@ -144,6 +174,7 @@ var AllowedSchedulingThresholdPlatforms = []string{
 	PlatformKimi,
 	PlatformZhipu,
 	PlatformMiniMax,
+	PlatformVolcengine,
 	PlatformOpenCodeGo,
 	PlatformCommandCode,
 }

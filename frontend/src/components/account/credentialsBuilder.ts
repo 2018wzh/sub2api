@@ -257,9 +257,9 @@ export const GROK_BASE_URL_PRESETS: GrokBaseUrlPreset[] = [
 // 默认端点；API 协议（chat_completions / anthropic / responses）决定转发端点与
 // 格式，两者正交。同协议请求零转换直通，跨协议组合才走转换链。
 
-export type CnAccountMode = 'payg' | 'coding'
+export type CnAccountMode = 'payg' | 'coding' | 'agent'
 export type OpenCodeAccountMode = 'zen' | 'go'
-export type CnProviderPlatform = 'kimi' | 'zhipu' | 'deepseek' | 'minimax'
+export type CnProviderPlatform = 'kimi' | 'zhipu' | 'deepseek' | 'minimax' | 'volcengine'
 
 /** adaptive 按入站协议（或按模型规则）选择原生端点。 */
 export type CnApiProtocol = 'adaptive' | 'chat_completions' | 'anthropic' | 'responses'
@@ -268,7 +268,8 @@ export type CnNativeApiProtocol = Exclude<CnApiProtocol, 'adaptive'>
 const NATIVE_API_PROTOCOLS: CnNativeApiProtocol[] = ['chat_completions', 'anthropic', 'responses']
 
 export function isCNProviderPlatform(platform: string): platform is CnProviderPlatform {
-  return platform === 'kimi' || platform === 'zhipu' || platform === 'deepseek' || platform === 'minimax'
+  return platform === 'kimi' || platform === 'zhipu' || platform === 'deepseek' ||
+    platform === 'minimax' || platform === 'volcengine'
 }
 
 /** 平台是否为多协议 API Key 供应商（平台清单中带 profile）。 */
@@ -308,6 +309,8 @@ export function providerModeLabel(mode: string, t: (key: string) => string): str
       return t('admin.accounts.cnProviders.accountMode.payg')
     case 'coding':
       return t('admin.accounts.cnProviders.accountMode.coding')
+    case 'agent':
+      return t('admin.accounts.cnProviders.accountMode.agent')
     case 'zen':
       return t('admin.accounts.opencodeGo.accountMode.zen')
     case 'go':
@@ -494,6 +497,14 @@ export const CN_BASE_URL_PRESETS: Record<CnProviderPlatform, CnBaseUrlPreset[]> 
     { mode: 'coding', protocol: 'chat_completions', label: 'MiniMax Coding Intl', url: 'https://api.minimax.io/v1' },
     { mode: 'coding', protocol: 'anthropic', label: 'MiniMax Coding Intl Anthropic', url: 'https://api.minimax.io/anthropic' },
     { mode: 'coding', protocol: 'responses', label: 'MiniMax Coding Intl Responses', url: 'https://api.minimax.io/v1' }
+  ],
+  volcengine: [
+    { mode: 'coding', protocol: 'chat_completions', label: 'Ark Coding Plan', url: 'https://ark.cn-beijing.volces.com/api/coding/v3' },
+    { mode: 'coding', protocol: 'anthropic', label: 'Ark Coding Plan Anthropic', url: 'https://ark.cn-beijing.volces.com/api/coding' },
+    { mode: 'coding', protocol: 'responses', label: 'Ark Coding Plan Responses', url: 'https://ark.cn-beijing.volces.com/api/coding/v3' },
+    { mode: 'agent', protocol: 'chat_completions', label: 'Ark Agent Plan', url: 'https://ark.cn-beijing.volces.com/api/plan/v3' },
+    { mode: 'agent', protocol: 'anthropic', label: 'Ark Agent Plan Anthropic', url: 'https://ark.cn-beijing.volces.com/api/plan' },
+    { mode: 'agent', protocol: 'responses', label: 'Ark Agent Plan Responses', url: 'https://ark.cn-beijing.volces.com/api/plan/v3' }
   ]
 }
 
@@ -595,6 +606,7 @@ export function cnQuotaCellVisible(account: CNUsageCellAccount): boolean {
   if (platform === 'opencode_go') return mode !== 'zen'
   // Command Code、Cline：订阅窗口与积分由一次探测同时刷新。
   if (OFFICIAL_ACCOUNT_API_PLATFORMS.includes(platform)) return officialAccountAPISupported(account, mode)
+  if (platform === 'volcengine') return mode === '' || mode === 'coding' || mode === 'agent'
   return (platform === 'kimi' || platform === 'zhipu' || platform === 'minimax') && mode === 'coding'
 }
 

@@ -149,6 +149,34 @@
       }
     },
     {
+      "id": "volcengine",
+      "display_name": "Volcengine Ark",
+      "gateway": "openai",
+      "cn_provider": true,
+      "multi_protocol": {
+        "default_mode": "coding",
+        "routing": "by_inbound",
+        "modes": [
+          {
+            "mode": "coding",
+            "base_urls": {
+              "anthropic": "https://ark.cn-beijing.volces.com/api/coding",
+              "chat_completions": "https://ark.cn-beijing.volces.com/api/coding/v3",
+              "responses": "https://ark.cn-beijing.volces.com/api/coding/v3"
+            }
+          },
+          {
+            "mode": "agent",
+            "base_urls": {
+              "anthropic": "https://ark.cn-beijing.volces.com/api/plan",
+              "chat_completions": "https://ark.cn-beijing.volces.com/api/plan/v3",
+              "responses": "https://ark.cn-beijing.volces.com/api/plan/v3"
+            }
+          }
+        ]
+      }
+    },
+    {
       "id": "opencode_go",
       "display_name": "OpenCode",
       "gateway": "openai",
@@ -309,6 +337,7 @@
     "zhipu",
     "deepseek",
     "minimax",
+    "volcengine",
     "opencode_go",
     "typesafe",
     "command_code",

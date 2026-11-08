@@ -229,6 +229,20 @@
           </button>
           <button
             type="button"
+            data-testid="platform-button-volcengine"
+            @click="selectCNPlatform('volcengine')"
+            :class="[
+              'flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2.5 text-xs font-medium transition-all sm:gap-2 sm:px-4 sm:text-sm',
+              form.platform === 'volcengine'
+                ? 'bg-white text-blue-600 shadow-sm dark:bg-dark-600 dark:text-blue-400'
+                : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+            ]"
+          >
+            <PlatformIcon platform="volcengine" size="sm" />
+            Volcengine Ark
+          </button>
+          <button
+            type="button"
             data-testid="platform-button-opencode_go"
             @click="selectOpenCodeGoPlatform()"
             :class="[
@@ -680,8 +694,60 @@
         </div>
       </div>
 
+      <!-- Account Mode Selection (Volcengine Ark: Coding Plan / Agent Plan) -->
+      <div v-if="isCNPlatform && form.platform === 'volcengine'" data-testid="volcengine-account-mode">
+        <label class="input-label">{{ t('admin.accounts.cnProviders.accountMode.title') }}</label>
+        <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <button
+            type="button"
+            @click="accountMode = 'coding'"
+            :class="[
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              accountMode === 'coding'
+                ? cnAccentActiveClass
+                : 'border-gray-200 hover:border-gray-400 dark:border-dark-600 dark:hover:border-gray-600'
+            ]"
+          >
+            <div
+              :class="[
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                accountMode === 'coding' ? cnAccentIconClass : 'bg-gray-100 text-gray-500 dark:bg-dark-600 dark:text-gray-400'
+              ]"
+            >
+              <Icon name="bolt" size="sm" />
+            </div>
+            <div>
+              <span class="block text-sm font-medium text-gray-900 dark:text-white">{{ t('admin.accounts.cnProviders.accountMode.coding') }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.accounts.cnProviders.accountMode.codingDesc') }}</span>
+            </div>
+          </button>
+          <button
+            type="button"
+            @click="accountMode = 'agent'"
+            :class="[
+              'flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all',
+              accountMode === 'agent'
+                ? cnAccentActiveClass
+                : 'border-gray-200 hover:border-gray-400 dark:border-dark-600 dark:hover:border-gray-600'
+            ]"
+          >
+            <div
+              :class="[
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg',
+                accountMode === 'agent' ? cnAccentIconClass : 'bg-gray-100 text-gray-500 dark:bg-dark-600 dark:text-gray-400'
+              ]"
+            >
+              <Icon name="sparkles" size="sm" />
+            </div>
+            <div>
+              <span class="block text-sm font-medium text-gray-900 dark:text-white">{{ t('admin.accounts.cnProviders.accountMode.agent') }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ t('admin.accounts.cnProviders.accountMode.agentDesc') }}</span>
+            </div>
+          </button>
+        </div>
+      </div>
       <!-- Account Mode Selection (Kimi / Zhipu / DeepSeek) -->
-      <div v-if="isCNPlatform && !isOpenCodeGoPlatform">
+      <div v-if="isCNPlatform && !isOpenCodeGoPlatform && form.platform !== 'volcengine'">
         <label class="input-label">{{ t('admin.accounts.cnProviders.accountMode.title') }}</label>
         <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2" data-tour="account-form-mode">
           <!-- Pay-as-you-go (token balance) -->
@@ -802,6 +868,32 @@
           </div>
         </div>
         <p class="input-hint mt-2">{{ t('admin.accounts.cnProviders.zhipuTeam.hint') }}</p>
+      </div>
+
+      <!-- Volcengine Ark：控制面 AK/SK（额度查询与调度窗口探测） -->
+      <div v-if="form.platform === 'volcengine'" class="mt-4" data-testid="volcengine-aksk">
+        <div class="flex items-center">
+          <label class="input-label">{{ t('admin.accounts.cnProviders.volcengine.title') }}</label>
+          <HelpTooltip trigger="click" width-class="w-80">
+            <p class="mb-1 font-medium">{{ t('admin.accounts.cnProviders.volcengine.help.title') }}</p>
+            <ol class="list-decimal space-y-1 pl-4">
+              <li>{{ t('admin.accounts.cnProviders.volcengine.help.step1') }}</li>
+              <li>{{ t('admin.accounts.cnProviders.volcengine.help.step2') }}</li>
+              <li>{{ t('admin.accounts.cnProviders.volcengine.help.step3') }}</li>
+            </ol>
+          </HelpTooltip>
+        </div>
+        <div class="mt-2 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label class="input-label">{{ t('admin.accounts.cnProviders.volcengine.accessKeyId') }}</label>
+            <input v-model="volcengineAccessKeyId" type="text" class="input font-mono" autocomplete="off" :placeholder="t('admin.accounts.cnProviders.volcengine.accessKeyIdPlaceholder')" />
+          </div>
+          <div>
+            <label class="input-label">{{ t('admin.accounts.cnProviders.volcengine.secretAccessKey') }}</label>
+            <input v-model="volcengineSecretAccessKey" type="password" class="input font-mono" autocomplete="new-password" data-1p-ignore :placeholder="t('admin.accounts.cnProviders.volcengine.secretAccessKeyPlaceholder')" />
+          </div>
+        </div>
+        <p class="input-hint mt-2">{{ t('admin.accounts.cnProviders.volcengine.hint') }}</p>
       </div>
 
       <!-- Account Type Selection (Gemini) -->
@@ -5351,6 +5443,9 @@ const apiKeyValuePlaceholder = computed(() => {
     case 'deepseek':
       return 'sk-...'
     case 'minimax':
+      return 'sk-...'
+    case 'volcengine':
+      return 'ARK API Key'
     case 'opencode_go':
       return 'sk-...'
     case 'typesafe':
@@ -5470,6 +5565,9 @@ const openCodeGoProtocolRules = ref<OpenCodeGoProtocolRule[]>(
 // 智谱团队版 Coding Plan：组织/项目 ID，写入 credentials 供额度探测切换团队端点
 const zhipuOrganization = ref('')
 const zhipuProject = ref('')
+// 火山方舟控制面 AK/SK：仅用于额度查询（控制面 OpenAPI），与推理 API Key 分开
+const volcengineAccessKeyId = ref('')
+const volcengineSecretAccessKey = ref('')
 const adaptiveBaseUrls = ref<Record<CnNativeApiProtocol, string>>({
   chat_completions: '',
   anthropic: '',
@@ -5501,7 +5599,10 @@ const cnPresetPlatform = computed<CnProviderPlatform>(() => {
   return 'kimi'
 })
 // 国产厂商的接入模式只有 payg / coding（selectCNPlatform 已按 profile 规范化）。
-const cnPresetMode = computed<CnAccountMode>(() => (accountMode.value === 'coding' ? 'coding' : 'payg'))
+const cnPresetMode = computed<CnAccountMode>(() => {
+  if (accountMode.value === 'agent') return 'agent'
+  return accountMode.value === 'coding' ? 'coding' : 'payg'
+})
 const adaptivePresetPlatform = computed<string>(() => {
   if (isMultiProtocolPlatform.value) return form.platform
   return cnPresetPlatform.value
@@ -5538,6 +5639,8 @@ const cnAccentActiveClass = computed(() => {
       return 'border-teal-500 bg-teal-50 dark:bg-teal-900/20'
     case 'minimax':
       return 'border-rose-500 bg-rose-50 dark:bg-rose-900/20'
+    case 'volcengine':
+      return 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
     case 'opencode_go':
       return 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
     default:
@@ -5554,6 +5657,8 @@ const cnAccentIconClass = computed(() => {
       return 'bg-teal-500 text-white'
     case 'minimax':
       return 'bg-rose-500 text-white'
+    case 'volcengine':
+      return 'bg-blue-500 text-white'
     case 'opencode_go':
       return 'bg-amber-500 text-white'
     default:
@@ -7681,6 +7786,11 @@ const handleSubmit = async () => {
     if (form.platform === 'zhipu' && accountMode.value === 'coding') {
       if (zhipuOrganization.value.trim()) credentials.zhipu_organization = zhipuOrganization.value.trim()
       if (zhipuProject.value.trim()) credentials.zhipu_project = zhipuProject.value.trim()
+    }
+    // 火山方舟：控制面 AK/SK 仅用于额度探测，与推理 API Key 分开保存
+    if (form.platform === 'volcengine') {
+      if (volcengineAccessKeyId.value.trim()) credentials.access_key_id = volcengineAccessKeyId.value.trim()
+      if (volcengineSecretAccessKey.value.trim()) credentials.secret_access_key = volcengineSecretAccessKey.value.trim()
     }
     if (providerRoutesByModel(form.platform)) {
       applyOpenCodeGoProtocolRules(credentials, openCodeGoProtocolRules.value, 'create')
