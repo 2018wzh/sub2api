@@ -167,6 +167,28 @@ var providerProfiles = map[string]*ProviderProfile{
 			},
 		},
 	},
+	PlatformVolcengine: {
+		Platform:    PlatformVolcengine,
+		DefaultMode: AccountModeCoding,
+		Routing:     ProviderRoutingByInbound,
+		Modes: map[string]ProviderEndpoints{
+			// Coding Plan 与 Agent Plan 的推理端点互不通用，必须按套餐选择。
+			AccountModeCoding: {
+				BaseURLs: map[string]string{
+					APIProtocolChatCompletions: DefaultVolcengineCodingBaseURL,
+					APIProtocolResponses:       DefaultVolcengineCodingBaseURL,
+					APIProtocolAnthropic:       DefaultVolcengineCodingAnthropicBaseURL,
+				},
+			},
+			AccountModeAgent: {
+				BaseURLs: map[string]string{
+					APIProtocolChatCompletions: DefaultVolcengineAgentBaseURL,
+					APIProtocolResponses:       DefaultVolcengineAgentBaseURL,
+					APIProtocolAnthropic:       DefaultVolcengineAgentAnthropicBaseURL,
+				},
+			},
+		},
+	},
 	PlatformOpenCodeGo: {
 		Platform:         PlatformOpenCodeGo,
 		DefaultMode:      AccountModeGo,

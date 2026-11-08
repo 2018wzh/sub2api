@@ -261,11 +261,11 @@ describe('CreateAccountModal OpenAI long-context billing', () => {
 
   afterEach(() => vi.useRealTimers())
 
-  it('renders all 15 platforms in one grid with Kiro and Fish last', () => {
+  it('renders all 16 platforms in one grid with Kiro and Fish last', () => {
     const wrapper = mountModal()
     const platformSelector = wrapper.get('[data-tour="account-form-platform"]')
 
-    // 手机 3 列（15 个平台正好 5 行），sm 起 4 列。
+    // 手机 3 列，sm 起 4 列。
     expect(platformSelector.classes()).toEqual(expect.arrayContaining(['grid-cols-3', 'sm:grid-cols-4']))
     expect(platformSelector.classes()).not.toContain('sm:grid-cols-5')
     expect(platformSelector.findAll('button').map((button) => button.text())).toEqual([
@@ -279,6 +279,7 @@ describe('CreateAccountModal OpenAI long-context billing', () => {
       'Zhipu GLM',
       'DeepSeek',
       'MiniMax',
+      'Volcengine Ark',
       'OpenCode',
       'Command Code',
       'Cline',

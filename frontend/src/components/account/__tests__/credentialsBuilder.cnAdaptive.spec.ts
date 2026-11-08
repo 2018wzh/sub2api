@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { cnSupportsNativeResponses, defaultCNAdaptiveBaseUrls } from '../credentialsBuilder'
 
 describe('cnSupportsNativeResponses', () => {
-  it('is true for DeepSeek, Kimi, and MiniMax', () => {
+  it('is true for DeepSeek, Kimi, MiniMax, and Volcengine Ark', () => {
     expect(cnSupportsNativeResponses('deepseek')).toBe(true)
     expect(cnSupportsNativeResponses('kimi')).toBe(true)
     expect(cnSupportsNativeResponses('minimax')).toBe(true)
+    expect(cnSupportsNativeResponses('volcengine', 'coding')).toBe(true)
+    expect(cnSupportsNativeResponses('volcengine', 'agent')).toBe(true)
     expect(cnSupportsNativeResponses('zhipu')).toBe(false)
     expect(cnSupportsNativeResponses('openai')).toBe(false)
   })
@@ -55,5 +57,18 @@ describe('defaultCNAdaptiveBaseUrls', () => {
     }
     expect(defaultCNAdaptiveBaseUrls('minimax', 'payg')).toEqual(expected)
     expect(defaultCNAdaptiveBaseUrls('minimax', 'coding')).toEqual(expected)
+  })
+
+  it('resolves Volcengine Ark plan endpoints by account mode', () => {
+    expect(defaultCNAdaptiveBaseUrls('volcengine', 'coding')).toEqual({
+      chat_completions: 'https://ark.cn-beijing.volces.com/api/coding/v3',
+      anthropic: 'https://ark.cn-beijing.volces.com/api/coding',
+      responses: 'https://ark.cn-beijing.volces.com/api/coding/v3'
+    })
+    expect(defaultCNAdaptiveBaseUrls('volcengine', 'agent')).toEqual({
+      chat_completions: 'https://ark.cn-beijing.volces.com/api/plan/v3',
+      anthropic: 'https://ark.cn-beijing.volces.com/api/plan',
+      responses: 'https://ark.cn-beijing.volces.com/api/plan/v3'
+    })
   })
 })

@@ -11,6 +11,8 @@ var SensitiveCredentialKeys = []string{
 	"password", "sso_token", "sso", "sso-rw", "clearTextPassword",
 	// 云服务凭据
 	"aws_secret_access_key", "aws_session_token",
+	// 火山方舟控制面额度查询凭据（推理 API Key 之外的第二套密钥）
+	"secret_access_key",
 	"service_account_json", "service_account", "private_key",
 }
 

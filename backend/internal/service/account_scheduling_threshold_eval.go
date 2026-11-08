@@ -58,7 +58,7 @@ func EvaluateAccountSchedulingThreshold(account *Account, thresholds map[string]
 		winner = pickLatestResetSchedulingCandidate(anthropicThresholdCandidates(account), threshold, now)
 	case PlatformGrok:
 		winner = pickLatestResetSchedulingCandidate(grokThresholdCandidates(account), threshold, now)
-	case PlatformKimi, PlatformZhipu, PlatformMiniMax, PlatformOpenCodeGo, PlatformCommandCode:
+	case PlatformKimi, PlatformZhipu, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo, PlatformCommandCode:
 		winner = pickLatestResetSchedulingCandidate(cnProviderThresholdCandidates(account, decision.Platform), threshold, now)
 	default:
 		return decision
@@ -376,10 +376,10 @@ func cnProviderThresholdCandidates(account *Account, provider string) []*account
 }
 
 // cnQuotaHasMonthlyWindow 报告供应商的额度快照是否含月度窗口（OpenCode Go、
-// Command Code 与 Kimi 新套餐）。
+// Command Code、Kimi 新套餐及火山方舟订阅）。
 func cnQuotaHasMonthlyWindow(provider string) bool {
 	switch provider {
-	case PlatformOpenCodeGo, PlatformCommandCode, PlatformKimi:
+	case PlatformOpenCodeGo, PlatformCommandCode, PlatformKimi, PlatformVolcengine:
 		return true
 	default:
 		return false

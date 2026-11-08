@@ -14,27 +14,27 @@ import (
 var (
 	legacyAllPlatforms = []string{
 		PlatformAnthropic, PlatformOpenAI, PlatformGemini, PlatformAntigravity, PlatformKiro, PlatformGrok,
-		PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformOpenCodeGo, PlatformTypeSafe,
+		PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo, PlatformTypeSafe,
 		PlatformCommandCode,
 		PlatformCline,
 		PlatformFish,
 	}
 	legacySchedulerSnapshotPlatforms = []string{
 		PlatformAnthropic, PlatformGemini, PlatformOpenAI, PlatformAntigravity, PlatformKiro, PlatformGrok,
-		PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformOpenCodeGo, PlatformTypeSafe,
+		PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo, PlatformTypeSafe,
 		PlatformCommandCode,
 		PlatformCline,
 		PlatformFish,
 	}
 	legacyCompositeMatchingPlatforms = legacySchedulerSnapshotPlatforms
-	legacyMultiProtocolProviders     = []string{PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformOpenCodeGo, PlatformCommandCode, PlatformCline}
+	legacyMultiProtocolProviders     = []string{PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo, PlatformCommandCode, PlatformCline}
 	platformProbeValues              = append(append([]string{}, legacyAllPlatforms...), PlatformComposite, "", "moonshot", "Kimi", "openai ", "glm", "bogus")
 	platformProbeAccountTypes        = []string{AccountTypeAPIKey, AccountTypeOAuth, AccountTypeSetupToken, AccountTypeUpstream, ""}
 )
 
 func legacyIsCNProvider(platform string) bool {
 	switch platform {
-	case PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax:
+	case PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine:
 		return true
 	}
 	return false
@@ -46,7 +46,7 @@ func legacyIsOpenAICompatible(platform string) bool {
 
 func legacyNormalizeOpenAICompatiblePlatform(platform string) string {
 	switch platform {
-	case PlatformGrok, PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformOpenCodeGo, PlatformCommandCode, PlatformCline, PlatformFish:
+	case PlatformGrok, PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo, PlatformCommandCode, PlatformCline, PlatformFish:
 		return platform
 	}
 	return PlatformOpenAI
@@ -58,7 +58,7 @@ func legacyIsUpstreamBillingProbeIdentity(platform, accountType string) bool {
 	}
 	switch platform {
 	case PlatformOpenAI, PlatformAnthropic, PlatformGemini, PlatformAntigravity, PlatformKiro, PlatformGrok,
-		PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformOpenCodeGo,
+		PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo,
 		PlatformTypeSafe, PlatformCommandCode, PlatformCline, PlatformFish:
 		return true
 	}
@@ -67,7 +67,7 @@ func legacyIsUpstreamBillingProbeIdentity(platform, accountType string) bool {
 
 func legacyIsHeaderOverrideEligible(platform, accountType string) bool {
 	switch platform {
-	case PlatformAnthropic, PlatformOpenAI, PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformOpenCodeGo, PlatformCommandCode, PlatformCline:
+	case PlatformAnthropic, PlatformOpenAI, PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax, PlatformVolcengine, PlatformOpenCodeGo, PlatformCommandCode, PlatformCline:
 		return accountType == AccountTypeAPIKey
 	case PlatformGrok:
 		return accountType == AccountTypeAPIKey || accountType == AccountTypeOAuth

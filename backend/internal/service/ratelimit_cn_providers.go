@@ -51,11 +51,11 @@ const cnQuotaExhaustedReasonPrefix = "cn_quota_exhausted"
 // 先做廉价的文案子串匹配（usage limit / quota will reset），未命中再解析
 // 响应体匹配结构化错误类型（Kimi 的 access_terminated_error），以兼容同族
 // 供应商的文案变体。与并发限制文案互斥，两类信号不会误判。
-// 仅限 Coding Plan 账号：滚动窗口快照（含重置时间）只有 Coding Plan 账号才有，
-// 非 Coding Plan 账号的同类 403 语义不明（可能是需要升级套餐的硬上限），
-// 应回退到通用 403 升级逻辑而非无限临时冷却。
+// 仅限订阅套餐账号（Coding Plan / Agent Plan）：滚动窗口快照只有这类账号才有，
+// 非订阅账号的同类 403 语义不明（可能是需要升级套餐的硬上限），应回退到通用
+// 403 升级逻辑而非无限临时冷却。
 func isCNProviderQuotaExhausted403(account *Account, responseBody []byte, upstreamMsg string) bool {
-	if account == nil || !account.IsCNProvider() || !account.IsCodingPlan() {
+	if account == nil || !account.IsCNProvider() || !account.HasRollingQuotaPlan() {
 		return false
 	}
 	msg := strings.ToLower(strings.TrimSpace(upstreamMsg))
@@ -272,7 +272,7 @@ func cnProviderQuotaSnapshotReset(account *Account, now time.Time) *time.Time {
 		if !commandCodeWindowsBinding(account.Extra) {
 			return nil
 		}
-	case account.IsCNProvider() && account.IsCodingPlan():
+	case account.IsCNProvider() && account.HasRollingQuotaPlan():
 	default:
 		return nil
 	}
@@ -374,7 +374,7 @@ func (s *RateLimitService) applyCNProviderReactive429(
 	// 5h 窗口结束（实测 1.5~4.8 小时），把「限频」误伤成「额度耗尽」。
 	// 护栏：快照显示窗口用量已接近耗尽时不降级，仍按窗口冷却（见
 	// cnProviderQuotaSnapshotNearExhausted）。
-	if account.IsCodingPlan() &&
+	if account.HasRollingQuotaPlan() &&
 		cnProviderResponseIndicatesFrequencyLimit(responseBody) &&
 		!cnProviderQuotaSnapshotNearExhausted(account, cnFrequencyLimitQuotaGuardPercent) {
 		slog.Info("cn_coding_plan_frequency_429",
@@ -386,7 +386,7 @@ func (s *RateLimitService) applyCNProviderReactive429(
 	}
 	// 3) Coding Plan 窗口耗尽：冷却到快照中最早的窗口重置点（见
 	// cnProviderQuotaSnapshotReset：429 多由 5h 窗口触发，取较早点避免过度停调）。
-	if account.IsCodingPlan() &&
+	if account.HasRollingQuotaPlan() &&
 		s.cooldownCNProviderToQuotaSnapshotReset(ctx, account, "429", "cn_coding_plan_rate_limited") != nil {
 		return true
 	}

@@ -224,13 +224,19 @@ func monitorAccountQuotaCapability(account *Account) error {
 	case PlatformOpenCodeGo:
 		return nil
 	case PlatformKimi, PlatformZhipu, PlatformDeepseek, PlatformMiniMax:
-		if account.IsCodingPlan() {
+		if account.HasRollingQuotaPlan() {
 			if p := account.GetCodingPlanProvider(); p != PlatformKimi && p != PlatformZhipu && p != PlatformMiniMax {
 				return ErrChannelMonitorAccountNotSupportable
 			}
 			return nil
 		}
 		if account.Platform == PlatformZhipu || account.Platform == PlatformMiniMax {
+			return ErrChannelMonitorAccountNotSupportable
+		}
+		return nil
+	case PlatformVolcengine:
+		if !account.HasRollingQuotaPlan() || account.GetCodingPlanProvider() != PlatformVolcengine ||
+			account.GetVolcengineAccessKeyID() == "" || account.GetVolcengineSecretAccessKey() == "" {
 			return ErrChannelMonitorAccountNotSupportable
 		}
 		return nil
